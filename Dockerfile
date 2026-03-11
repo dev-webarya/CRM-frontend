@@ -9,7 +9,7 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci --ignore-scripts && npm cache clean --force
+RUN npm cache clean --force && npm ci --ignore-scripts --cache /tmp/.npm
 
 # ---- Stage 2: Build the Vite app ----
 FROM node:20-alpine AS builder
