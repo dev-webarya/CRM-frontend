@@ -1,73 +1,67 @@
-# Welcome to your Lovable project
+# CRM Frontend
 
-## Project info
+React + TypeScript single-page application for the CRM system.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Tech Stack
 
-## How can I edit this code?
+- **React 18** with TypeScript
+- **Vite** — build tool
+- **Tailwind CSS** — utility-first styling
+- **shadcn/ui** — component library (Radix UI primitives)
+- **React Router** — client-side routing
+- **React Query** — server state management
+- **Recharts** — dashboard charts
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+```bash
+# Install dependencies
+npm install
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start dev server (http://localhost:5173)
 npm run dev
+
+# Production build
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-**Edit a file directly in GitHub**
+## Environment Variables
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Copy `.env.example` to `.env`:
 
-**Use GitHub Codespaces**
+```bash
+cp .env.example .env
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Variable | Description | Default |
+|---|---|---|
+| `VITE_API_URL` | Backend API base URL | `http://localhost:5000/api` |
 
-## What technologies are used for this project?
+## Project Structure
 
-This project is built with:
+```
+src/
+├── components/     # Reusable UI components
+│   ├── forms/      # Registration & input forms
+│   ├── layout/     # Dashboard & public layouts
+│   └── ui/         # shadcn/ui primitives
+├── context/        # Auth context provider
+├── lib/            # API client, utilities
+├── pages/
+│   ├── admin/      # Admin dashboard, approvals, billing
+│   ├── teacher/    # Teacher dashboard, earnings, classes
+│   └── student/    # Student dashboard
+└── types/          # TypeScript type definitions
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Docker
 
-## How can I deploy this project?
+```bash
+docker build -t crm-frontend .
+docker run -p 80:80 crm-frontend
+```
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+The Docker image uses a multi-stage build (Node for building, nginx for serving) with gzip compression, static asset caching, and API reverse proxy.
