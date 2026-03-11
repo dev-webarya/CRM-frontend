@@ -1,70 +1,245 @@
-import { Calendar, Clock, BookOpen, TrendingUp } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Calendar, Clock, BookOpen, TrendingUp, Loader } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Progress } from "@/components/ui/progress";
-import { classSessions, courses } from "@/data/mockData";
+import { useAuth } from "@/context/AuthContext";
+import { courseAPI, classAPI, invoiceAPI } from "@/lib/api";
+import { calculateCycleProgress, formatCurrency, formatDateTime } from "@/lib/crmUtils";
+
+import { Course, Class } from "@/types/types";
 
 export default function StudentDashboard() {
-  const myClasses = classSessions.filter((c) => c.studentId === "s1");
-  const todayClasses = myClasses.filter((c) => c.date === "2026-02-10");
-  const myCourse = courses.find((c) => c.studentId === "s1");
-  const progress = myCourse ? Math.round((myCourse.completedHours / myCourse.totalHours) * 100) : 0;
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [myCourses, setMyCourses] = useState<Course[]>([]);
+  const [myClasses, setMyClasses] = useState<Class[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user || user.role !== "student") return;
+      setLoading(true);
+      try {
+        const [coursesResp, classesResp, invoicesResp] = await Promise.all([
+          courseAPI.getCoursesForStudent(),
+          classAPI.getClassesForStudent(),
+          invoiceAPI.getMyInvoices()
+        ]);
+        setMyCourses(coursesResp.data || []);
+        setMyClasses(classesResp.data || []);
+        setInvoices(invoicesResp.data || []);
+      } catch (err) {
+        console.error("Failed to fetch student data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [user]);
+
+  const today = new Date().toISOString().split("T")[0];
+  const todayClasses = useMemo(
+    () => myClasses.filter((c) => c.startDateTime?.startsWith(today)),
+    [myClasses, today]
+  );
+
+  const monthlySummary = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    let hours = 0;
+    let fees = 0;
+
+    for (const cls of myClasses) {
+      if (cls.status !== "Completed") continue;
+      const d = new Date(cls.startDateTime);
+      if (d.getMonth() !== currentMonth || d.getFullYear() !== currentYear) continue;
+
+      const h = (cls.durationMinutes || 0) / 60;
+      hours += h;
+
+      const course = myCourses.find((c) => c.courseId === cls.courseId);
+      const rate = course?.billingRatePerHour || 0;
+      fees += h * rate;
+    }
+
+    return { hours, fees };
+  }, [myClasses, myCourses]);
+
+  const billingSummary = useMemo(() => {
+    const open = invoices.filter((i) => i.status === "pending" || i.status === "overdue" || i.status === "partially-paid");
+    const outstanding = open.reduce((sum: number, i: any) => sum + Number(i.remainingAmount || 0), 0);
+    const lastInvoice = invoices[0] || null;
+    return { outstanding, lastInvoice, openCount: open.length };
+  }, [invoices]);
+
+  const getCurrentStudentName = () => user?.name || "Student";
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading dashboard...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Student Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back, Arjun Mehta</p>
+        <p className="text-muted-foreground">
+          Welcome back, {getCurrentStudentName()}
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Today's Classes" value={todayClasses.length} icon={Calendar} />
-        <StatCard title="Total Classes" value={myClasses.length} subtitle="This cycle" icon={BookOpen} />
-        <StatCard title="Hours Completed" value={`${myCourse?.completedHours || 0}h`} icon={Clock} />
-        <StatCard title="Progress" value={`${progress}%`} subtitle={`of ${myCourse?.totalHours}h`} icon={TrendingUp} />
+        <StatCard
+          title="Today's Classes"
+          value={todayClasses.length}
+          icon={Calendar}
+        />
+        <StatCard
+          title="Total Classes"
+          value={myClasses.length}
+          subtitle="All courses"
+          icon={BookOpen}
+        />
+        <StatCard
+          title="Hours Studied (This Month)"
+          value={monthlySummary.hours.toFixed(1)}
+          subtitle={`Est. Fees: ${formatCurrency(monthlySummary.fees)} · Due: ${formatCurrency(billingSummary.outstanding)}`}
+          icon={TrendingUp}
+        />
+        <StatCard
+          title="Avg Progress"
+          value={
+            myCourses.length > 0
+              ? `${Math.round(
+                  myCourses.reduce((sum, c) => sum + calculateCycleProgress(c).progress, 0) /
+                    myCourses.length
+                )}%`
+              : "—"
+          }
+          subtitle="Across courses"
+          icon={Clock}
+        />
       </div>
 
       {/* Course progress */}
-      {myCourse && (
-        <div className="rounded-xl bg-card border border-border/50 p-6 shadow-soft">
-          <h2 className="font-semibold text-card-foreground mb-4">Course Progress</h2>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{myCourse.name}</span>
-              <span className="font-medium text-card-foreground">{myCourse.completedHours}/{myCourse.totalHours}h</span>
-            </div>
-            <Progress value={progress} className="h-3" />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Cycle: {myCourse.cycleType}</span>
-              <span>{myCourse.totalHours - myCourse.completedHours}h remaining</span>
-            </div>
-          </div>
+      {myCourses.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-card-foreground">My Courses</h2>
+          {myCourses.map((course) => {
+            const progress = calculateCycleProgress(course);
+            return (
+              <div
+                key={course.courseId}
+                className="rounded-xl bg-card border border-border/50 p-6 shadow-soft"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-card-foreground">
+                      {course.subject}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Cycle: {course.cycleType}
+                    </p>
+                  </div>
+                  <StatusBadge status={course.status} />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Progress</span>
+                    <span className="font-medium text-card-foreground">
+                      {course.completedHours} hours completed
+                    </span>
+                  </div>
+                  <Progress value={progress.progress} className="h-2" />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Fee Status: {course.feeStatus}</span>
+                    <span>
+                      {progress.progress === 100
+                        ? "Cycle Complete"
+                        : `${100 - progress.progress}% remaining`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
+
+      {/* Billing */}
+      <div className="rounded-xl bg-card border border-border/50 shadow-soft">
+        <div className="border-b border-border px-6 py-4">
+          <h2 className="font-semibold text-card-foreground">Billing</h2>
+        </div>
+        <div className="px-6 py-6">
+          {billingSummary.lastInvoice ? (
+            <div className="grid gap-2 md:grid-cols-3">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Latest Invoice</p>
+                <p className="font-medium">{billingSummary.lastInvoice.invoiceNumber}</p>
+                <p className="text-sm text-muted-foreground">{billingSummary.lastInvoice.billingMonth}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Status</p>
+                <p className="font-medium capitalize">{billingSummary.lastInvoice.status}</p>
+                <p className="text-sm text-muted-foreground">Due: {formatCurrency(billingSummary.outstanding)}</p>
+              </div>
+              <div className="md:text-right">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Open Invoices</p>
+                <p className="font-medium">{billingSummary.openCount}</p>
+                <p className="text-sm text-muted-foreground">Pay from the Payments page</p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-muted-foreground">No invoices yet.</div>
+          )}
+        </div>
+      </div>
 
       {/* Schedule */}
       <div className="rounded-xl bg-card border border-border/50 shadow-soft">
         <div className="border-b border-border px-6 py-4">
           <h2 className="font-semibold text-card-foreground flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-primary" /> My Schedule
+            <Calendar className="h-4 w-4 text-primary" /> Today's Schedule
           </h2>
         </div>
         <div className="divide-y divide-border">
-          {todayClasses.length > 0 ? todayClasses.map((c) => (
-            <div key={c.id} className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <BookOpen className="h-4 w-4 text-primary" />
+          {todayClasses.length > 0 ? (
+            todayClasses.map((c) => {
+              return (
+                <div
+                  key={c.classId}
+                  className="flex items-center justify-between px-6 py-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-card-foreground">
+                        {c.subject || c.courseId || "Class"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {c.startDateTime ? new Date(c.startDateTime).toLocaleTimeString() : "—"} ·{" "}
+                        {c.durationMinutes}m
+                      </p>
+                    </div>
+                  </div>
+                  <StatusBadge status={c.status} />
                 </div>
-                <div>
-                  <p className="font-medium text-card-foreground">{c.subject}</p>
-                  <p className="text-sm text-muted-foreground">{c.teacherName} · {c.time} · {c.duration}h</p>
-                </div>
-              </div>
-              <StatusBadge status={c.status} />
+              );
+            })
+          ) : (
+            <div className="px-6 py-8 text-center text-muted-foreground">
+              No classes scheduled for today.
             </div>
-          )) : (
-            <div className="px-6 py-8 text-center text-muted-foreground">No classes scheduled for today.</div>
           )}
         </div>
       </div>
@@ -74,30 +249,55 @@ export default function StudentDashboard() {
         <div className="border-b border-border px-6 py-4">
           <h2 className="font-semibold text-card-foreground">Class History</h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-muted/30">
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Subject</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Teacher</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Duration</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {myClasses.map((c) => (
-                <tr key={c.id} className="hover:bg-muted/50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-card-foreground">{c.date}</td>
-                  <td className="px-6 py-4 text-sm text-card-foreground">{c.subject}</td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">{c.teacherName}</td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">{c.duration}h</td>
-                  <td className="px-6 py-4"><StatusBadge status={c.status} /></td>
+        {myClasses.length === 0 ? (
+          <div className="px-6 py-8 text-center text-muted-foreground">
+            No classes yet
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border bg-muted/30">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Subject
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Duration
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Status
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {myClasses.map((c) => {
+                  return (
+                    <tr
+                      key={c.classId}
+                      className="hover:bg-muted/50 transition-colors"
+                    >
+                      <td className="px-6 py-4 text-sm text-card-foreground">
+                        {c.startDateTime ? formatDateTime(c.startDateTime) : "—"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {c.subject || c.courseId || "—"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {c.durationMinutes}m
+                      </td>
+                      <td className="px-6 py-4">
+                        <StatusBadge status={c.status} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

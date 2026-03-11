@@ -1,4 +1,6 @@
 import { Target, Heart, Lightbulb, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 const values = [
   { icon: Target, title: "Excellence", desc: "We strive for the highest standards in education and mentorship." },
@@ -9,58 +11,103 @@ const values = [
 
 export default function About() {
   return (
-    <div className="py-16">
+    <div className="py-24 bg-background overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">About <span className="text-gradient">EduCoach</span></h1>
-          <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-            Founded in 2018, EduCoach has been a beacon of academic excellence, helping students achieve their dreams through personalized coaching and expert mentorship.
-          </p>
+        <div className="grid gap-16 lg:grid-cols-2 lg:items-center mb-24">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              About <span className="text-gradient">EduCoach</span>
+            </h1>
+            <p className="mt-8 text-xl text-muted-foreground leading-relaxed">
+              Founded in 2018, EduCoach has been a beacon of academic excellence, helping students achieve their dreams through personalized coaching and expert mentorship.
+            </p>
+            <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
+              We believe that every student has unique potential. Our mission is to provide the tools, guidance, and environment necessary for that potential to flourish.
+            </p>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, x: 30 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="relative"
+          >
+            <div className="relative z-10 overflow-hidden rounded-3xl border border-border/50 shadow-2xl">
+              <img 
+                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1471" 
+                alt="Our Team" 
+                className="h-full w-full object-cover aspect-video lg:aspect-square"
+              />
+            </div>
+            <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+            <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
+          </motion.div>
         </div>
 
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-foreground mb-8">Our Values</h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {values.map((v) => (
-              <div key={v.title} className="rounded-xl bg-card p-6 shadow-soft border border-border/50">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <v.icon className="h-5 w-5 text-primary" />
+        <div className="mb-24">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Our Core Values</h2>
+            <p className="mt-4 text-lg text-muted-foreground">The principles that guide everything we do.</p>
+          </div>
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {values.map((v, i) => (
+              <motion.div 
+                key={v.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="group rounded-2xl bg-card p-8 shadow-card border border-border/50 hover:border-primary/30 transition-all"
+              >
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                  <v.icon className="h-6 w-6" />
                 </div>
-                <h3 className="font-semibold text-card-foreground">{v.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{v.desc}</p>
-              </div>
+                <h3 className="text-xl font-bold text-card-foreground">{v.title}</h3>
+                <p className="mt-3 text-muted-foreground leading-relaxed">{v.desc}</p>
+              </motion.div>
             ))}
           </div>
         </div>
 
-        <div className="mt-16 rounded-2xl bg-muted p-8 lg:p-12">
-          <div className="grid gap-8 lg:grid-cols-2 items-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="rounded-3xl bg-card border border-border/50 p-8 lg:p-16 shadow-2xl relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_hsl(230_70%_55%_/_0.05),_transparent_40%)]" />
+          
+          <div className="relative grid gap-16 lg:grid-cols-2 items-center">
             <div>
-              <h2 className="text-2xl font-bold text-foreground">Our Mission</h2>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
+              <h2 className="text-3xl font-bold text-foreground sm:text-4xl">Our Mission</h2>
+              <p className="mt-6 text-xl text-muted-foreground leading-relaxed">
                 To democratize quality education by providing personalized, affordable, and accessible coaching that empowers every student to realize their full potential, regardless of their background.
               </p>
+              <div className="mt-10">
+                <Button size="lg" className="gradient-primary border-0 text-primary-foreground font-bold shadow-lg">
+                  Learn More About Our Impact
+                </Button>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="rounded-lg bg-card p-4 shadow-soft">
-                <p className="text-2xl font-bold text-primary">7+</p>
-                <p className="text-sm text-muted-foreground">Years Experience</p>
-              </div>
-              <div className="rounded-lg bg-card p-4 shadow-soft">
-                <p className="text-2xl font-bold text-primary">30+</p>
-                <p className="text-sm text-muted-foreground">Expert Teachers</p>
-              </div>
-              <div className="rounded-lg bg-card p-4 shadow-soft">
-                <p className="text-2xl font-bold text-primary">500+</p>
-                <p className="text-sm text-muted-foreground">Happy Students</p>
-              </div>
-              <div className="rounded-lg bg-card p-4 shadow-soft">
-                <p className="text-2xl font-bold text-primary">95%</p>
-                <p className="text-sm text-muted-foreground">Success Rate</p>
-              </div>
+            
+            <div className="grid grid-cols-2 gap-6">
+              {[
+                { label: "Years Experience", value: "7+", color: "text-blue-600", bg: "bg-blue-600/10" },
+                { label: "Expert Teachers", value: "30+", color: "text-emerald-600", bg: "bg-emerald-600/10" },
+                { label: "Happy Students", value: "500+", color: "text-amber-600", bg: "bg-amber-600/10" },
+                { label: "Success Rate", value: "95%", color: "text-rose-600", bg: "bg-rose-600/10" }
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-2xl bg-muted/30 p-6 border border-border/50 text-center hover:bg-muted/50 transition-colors">
+                  <p className={`text-3xl font-black ${stat.color}`}>{stat.value}</p>
+                  <p className="mt-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

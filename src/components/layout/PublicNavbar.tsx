@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { GraduationCap, Menu, X } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "../ThemeToggle";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -16,56 +18,80 @@ export function PublicNavbar() {
   const location = useLocation();
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border/50 bg-card/90 backdrop-blur-lg">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
-            <GraduationCap className="h-5 w-5 text-primary-foreground" />
+    <nav className="sticky top-0 z-50 border-b border-border/40 bg-card/70 backdrop-blur-xl">
+      <div className="mx-auto flex h-20 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl gradient-primary shadow-lg group-hover:scale-105 transition-transform duration-300">
+            <GraduationCap className="h-6 w-6 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold text-foreground">EduCoach</span>
+          <div className="flex flex-col">
+            <span className="text-xl font-black tracking-tight text-foreground leading-none">EduCoach</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Academy</span>
+          </div>
         </Link>
 
         {/* Desktop */}
-        <div className="hidden items-center gap-1 md:flex">
+        <div className="hidden items-center gap-2 md:flex">
           {navLinks.map((l) => (
             <Link
               key={l.href}
               to={l.href}
               className={cn(
-                "rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
+                "relative rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200",
                 location.pathname === l.href
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
               {l.label}
+              {location.pathname === l.href && (
+                <motion.div 
+                  layoutId="nav-underline"
+                  className="absolute bottom-1 left-4 right-4 h-0.5 bg-primary rounded-full"
+                />
+              )}
             </Link>
           ))}
         </div>
 
-        <div className="hidden md:block">
+        <div className="hidden items-center gap-4 md:flex">
+          <ThemeToggle />
           <Link to="/login">
-            <Button size="sm">Login</Button>
+            <Button variant="ghost" className="font-semibold text-muted-foreground hover:text-foreground">
+              Login
+            </Button>
+          </Link>
+          <Link to="/contact">
+            <Button className="gradient-primary border-0 text-primary-foreground font-bold px-6 shadow-md hover:shadow-primary/20 transition-all">
+              Join Now
+            </Button>
           </Link>
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden p-2" onClick={() => setOpen(!open)}>
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        <button 
+          className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors" 
+          onClick={() => setOpen(!open)}
+        >
+          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {/* Mobile menu */}
       {open && (
-        <div className="border-t border-border md:hidden">
-          <div className="space-y-1 px-4 py-3">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="border-t border-border bg-card md:hidden"
+        >
+          <div className="space-y-2 px-4 py-6">
             {navLinks.map((l) => (
               <Link
                 key={l.href}
                 to={l.href}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "block rounded-lg px-3 py-2 text-sm font-medium",
+                  "block rounded-xl px-4 py-3 text-base font-semibold transition-colors",
                   location.pathname === l.href
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-muted"
@@ -74,11 +100,16 @@ export function PublicNavbar() {
                 {l.label}
               </Link>
             ))}
-            <Link to="/login" onClick={() => setOpen(false)}>
-              <Button size="sm" className="mt-2 w-full">Login</Button>
-            </Link>
+            <div className="grid grid-cols-2 gap-4 pt-4">
+              <Link to="/login" onClick={() => setOpen(false)}>
+                <Button variant="outline" className="w-full h-12 font-bold">Login</Button>
+              </Link>
+              <Link to="/contact" onClick={() => setOpen(false)}>
+                <Button className="w-full h-12 font-bold gradient-primary border-0 text-primary-foreground">Join Now</Button>
+              </Link>
+            </div>
           </div>
-        </div>
+        </motion.div>
       )}
     </nav>
   );

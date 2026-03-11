@@ -1,105 +1,454 @@
-export interface Teacher {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  subjects: string[];
-  status: "Active" | "Paused" | "Inactive";
-  joinDate: string;
-  monthlyHours: number;
-  rate: number;
-}
+import { Teacher, Student, Course, Class, LogEntry, InstituteSettings } from "@/types/types";
 
-export interface Student {
-  id: string;
-  regNumber: string;
-  name: string;
-  email: string;
-  phone: string;
-  grade: string;
-  status: "Active" | "Paused" | "Completed";
-  joinDate: string;
-  assignedTeacher: string;
-  course: string;
-}
-
-export interface Course {
-  id: string;
-  name: string;
-  subject: string;
-  studentId: string;
-  teacherId: string;
-  cycleType: "Monthly" | "Quarterly" | "Yearly";
-  totalHours: number;
-  completedHours: number;
-  billingRate: number;
-  status: "Active" | "Paused" | "Completed";
-}
-
-export interface ClassSession {
-  id: string;
-  date: string;
-  time: string;
-  duration: number;
-  teacherId: string;
-  teacherName: string;
-  studentId: string;
-  studentName: string;
-  subject: string;
-  status: "Scheduled" | "Completed" | "Cancelled";
-}
-
-export interface LogEntry {
-  id: string;
-  timestamp: string;
-  action: string;
-  object: string;
-  user: string;
-  role: "Admin" | "Teacher" | "Student";
-  details: string;
-}
+// ============= MOCK DATA =============
+const adminId = "ADM-001";
+const today = new Date("2026-02-23");
 
 export const teachers: Teacher[] = [
-  { id: "t1", name: "Dr. Ananya Sharma", email: "ananya@institute.com", phone: "+91 98765 43210", subjects: ["Mathematics", "Physics"], status: "Active", joinDate: "2024-01-15", monthlyHours: 48, rate: 800 },
-  { id: "t2", name: "Rajesh Kumar", email: "rajesh@institute.com", phone: "+91 98765 43211", subjects: ["Chemistry"], status: "Active", joinDate: "2024-03-01", monthlyHours: 36, rate: 700 },
-  { id: "t3", name: "Priya Patel", email: "priya@institute.com", phone: "+91 98765 43212", subjects: ["English", "Literature"], status: "Paused", joinDate: "2023-09-10", monthlyHours: 0, rate: 650 },
-  { id: "t4", name: "Vikram Singh", email: "vikram@institute.com", phone: "+91 98765 43213", subjects: ["Biology", "Chemistry"], status: "Active", joinDate: "2024-06-01", monthlyHours: 42, rate: 750 },
-  { id: "t5", name: "Meera Nair", email: "meera@institute.com", phone: "+91 98765 43214", subjects: ["Computer Science"], status: "Active", joinDate: "2024-02-20", monthlyHours: 30, rate: 900 },
+  {
+    teacherId: "TCH-000001",
+    name: "Dr. Ananya Sharma",
+    email: "ananya@institute.com",
+    mobile: "+91 98765 43210",
+    subjects: ["Subject 1", "Subject 2"],
+    compensationPerHour: 800,
+    compensationPerHourHigh: 1000,
+    dateOfJoining: "2024-01-15",
+    status: "Active",
+    createdAt: "2024-01-15T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    teacherId: "TCH-000002",
+    name: "Rajesh Kumar",
+    email: "rajesh@institute.com",
+    mobile: "+91 98765 43211",
+    subjects: ["Subject 3"],
+    compensationPerHour: 700,
+    dateOfJoining: "2024-03-01",
+    status: "Active",
+    createdAt: "2024-03-01T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    teacherId: "TCH-000003",
+    name: "Priya Patel",
+    email: "priya@institute.com",
+    mobile: "+91 98765 43212",
+    subjects: ["Subject 4", "Subject 5"],
+    compensationPerHour: 650,
+    dateOfJoining: "2023-09-10",
+    status: "Inactive",
+    createdAt: "2023-09-10T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    teacherId: "TCH-000004",
+    name: "Vikram Singh",
+    email: "vikram@institute.com",
+    mobile: "+91 98765 43213",
+    subjects: ["Subject 6", "Subject 3"],
+    compensationPerHour: 750,
+    compensationPerHourHigh: 900,
+    dateOfJoining: "2024-06-01",
+    status: "Active",
+    createdAt: "2024-06-01T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    teacherId: "TCH-000005",
+    name: "Meera Nair",
+    email: "meera@institute.com",
+    mobile: "+91 98765 43214",
+    subjects: ["Subject 7"],
+    compensationPerHour: 900,
+    dateOfJoining: "2024-02-20",
+    status: "Active",
+    createdAt: "2024-02-20T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
 ];
 
 export const students: Student[] = [
-  { id: "s1", regNumber: "STU-2024-001", name: "Arjun Mehta", email: "arjun@email.com", phone: "+91 87654 32100", grade: "12th", status: "Active", joinDate: "2024-04-01", assignedTeacher: "t1", course: "JEE Advanced" },
-  { id: "s2", regNumber: "STU-2024-002", name: "Sneha Reddy", email: "sneha@email.com", phone: "+91 87654 32101", grade: "11th", status: "Active", joinDate: "2024-05-15", assignedTeacher: "t2", course: "NEET Prep" },
-  { id: "s3", regNumber: "STU-2024-003", name: "Karan Gupta", email: "karan@email.com", phone: "+91 87654 32102", grade: "10th", status: "Paused", joinDate: "2024-01-10", assignedTeacher: "t3", course: "Board Prep" },
-  { id: "s4", regNumber: "STU-2024-004", name: "Divya Joshi", email: "divya@email.com", phone: "+91 87654 32103", grade: "12th", status: "Active", joinDate: "2024-06-01", assignedTeacher: "t4", course: "NEET Prep" },
-  { id: "s5", regNumber: "STU-2024-005", name: "Rohan Das", email: "rohan@email.com", phone: "+91 87654 32104", grade: "11th", status: "Completed", joinDate: "2023-08-01", assignedTeacher: "t5", course: "CS Foundation" },
-  { id: "s6", regNumber: "STU-2024-006", name: "Anita Sharma", email: "anita@email.com", phone: "+91 87654 32105", grade: "12th", status: "Active", joinDate: "2024-07-01", assignedTeacher: "t1", course: "JEE Advanced" },
+  {
+    studentId: "STD-000001",
+    registrationNumber: "STU-2024-001",
+    name: "Arjun Mehta",
+    email: "arjun@email.com",
+    dateOfEnrollment: "2024-04-01",
+    mobile: "+91 87654 32100",
+    parentEmailId: "parent.arjun@email.com",
+    fatherName: "Sanjay Mehta",
+    motherName: "Sunita Mehta",
+    parentContact: "+91 98123 45670",
+    grade: "12",
+    courseName: "Delhi Public School",
+    address: "New Delhi",
+    status: "Active",
+    createdAt: "2024-04-01T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    studentId: "STD-000002",
+    registrationNumber: "STU-2024-002",
+    name: "Sneha Reddy",
+    email: "sneha@email.com",
+    dateOfEnrollment: "2024-05-15",
+    mobile: "+91 87654 32101",
+    parentEmailId: "parent.sneha@email.com",
+    fatherName: "Ramana Reddy",
+    motherName: "Laxmi Reddy",
+    parentContact: "+91 98123 45671",
+    grade: "11",
+    courseName: "Nalanda Academy",
+    address: "Bangalore",
+    status: "Active",
+    createdAt: "2024-05-15T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    studentId: "STD-000003",
+    registrationNumber: "STU-2024-003",
+    name: "Karan Gupta",
+    email: "karan@email.com",
+    dateOfEnrollment: "2024-01-10",
+    mobile: "+91 87654 32102",
+    parentEmailId: "parent.karan@email.com",
+    fatherName: "Vijay Gupta",
+    motherName: "Anjali Gupta",
+    parentContact: "+91 98123 45672",
+    grade: "10",
+    courseName: "Central School",
+    address: "Mumbai",
+    status: "Paused",
+    createdAt: "2024-01-10T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    studentId: "STD-000004",
+    registrationNumber: "STU-2024-004",
+    name: "Divya Joshi",
+    email: "divya@email.com",
+    dateOfEnrollment: "2024-06-01",
+    mobile: "+91 87654 32103",
+    parentEmailId: "parent.divya@email.com",
+    fatherName: "Manoj Joshi",
+    motherName: "Deepa Joshi",
+    parentContact: "+91 98123 45673",
+    grade: "12",
+    courseName: "Bharati Vidyapith",
+    address: "Pune",
+    status: "Active",
+    createdAt: "2024-06-01T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    studentId: "STD-000005",
+    registrationNumber: "STU-2024-005",
+    name: "Rohan Das",
+    email: "rohan@email.com",
+    dateOfEnrollment: "2023-08-01",
+    mobile: "+91 87654 32104",
+    parentEmailId: "parent.rohan@email.com",
+    fatherName: "Bimal Das",
+    motherName: "Rita Das",
+    parentContact: "+91 98123 45674",
+    grade: "12thPass",
+    courseName: "St. Xavier's",
+    address: "Kolkata",
+    status: "Completed",
+    createdAt: "2023-08-01T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    studentId: "STD-000006",
+    registrationNumber: "STU-2024-006",
+    name: "Anita Sharma",
+    email: "anita@email.com",
+    dateOfEnrollment: "2024-07-01",
+    mobile: "+91 87654 32105",
+    parentEmailId: "parent.anita@email.com",
+    fatherName: "Gopal Sharma",
+    motherName: "Kavita Sharma",
+    parentContact: "+91 98123 45675",
+    grade: "12",
+    courseName: "Delhi Public School",
+    address: "New Delhi",
+    status: "Active",
+    createdAt: "2024-07-01T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
 ];
 
 export const courses: Course[] = [
-  { id: "c1", name: "JEE Advanced - Arjun", subject: "Mathematics + Physics", studentId: "s1", teacherId: "t1", cycleType: "Quarterly", totalHours: 120, completedHours: 78, billingRate: 800, status: "Active" },
-  { id: "c2", name: "NEET Prep - Sneha", subject: "Chemistry", studentId: "s2", teacherId: "t2", cycleType: "Monthly", totalHours: 40, completedHours: 24, billingRate: 700, status: "Active" },
-  { id: "c3", name: "Board Prep - Karan", subject: "English", studentId: "s3", teacherId: "t3", cycleType: "Monthly", totalHours: 30, completedHours: 30, billingRate: 650, status: "Paused" },
-  { id: "c4", name: "NEET Prep - Divya", subject: "Biology + Chemistry", studentId: "s4", teacherId: "t4", cycleType: "Quarterly", totalHours: 100, completedHours: 45, billingRate: 750, status: "Active" },
-  { id: "c5", name: "CS Foundation - Rohan", subject: "Computer Science", studentId: "s5", teacherId: "t5", cycleType: "Yearly", totalHours: 200, completedHours: 200, billingRate: 900, status: "Completed" },
+  {
+    courseId: "CRS-000001",
+    studentId: "STD-000001",
+    subject: "Course 1 - Subject 1",
+    teacherId: "TCH-000001",
+    timeSlot1: "Mon 6:00-7:00 PM",
+    timeSlot2: "Wed 6:00-7:00 PM",
+    timeSlot3: "Fri 6:00-7:00 PM",
+    cycleType: "12hrs",
+    cycleTargetHours: 12,
+    billingRatePerHour: 800,
+    billingRatePerHourHigh: 1000,
+    startDate: "2024-04-01",
+    status: "Active",
+    feeStatus: "NotDue",
+    completedHours: 9.5,
+    createdAt: "2024-04-01T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    courseId: "CRS-000002",
+    studentId: "STD-000002",
+    subject: "Course 2 - Subject 3",
+    teacherId: "TCH-000002",
+    timeSlot1: "Tue 5:00-6:00 PM",
+    timeSlot2: "Thu 5:00-6:00 PM",
+    cycleType: "monthly",
+    billingRatePerHour: 700,
+    startDate: "2024-05-15",
+    status: "Active",
+    feeStatus: "NotDue",
+    completedHours: 8,
+    createdAt: "2024-05-15T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    courseId: "CRS-000003",
+    studentId: "STD-000003",
+    subject: "Course 3 - Subject 4",
+    teacherId: "TCH-000003",
+    timeSlot1: "Mon 4:00-5:00 PM",
+    cycleType: "8hrs",
+    cycleTargetHours: 8,
+    billingRatePerHour: 650,
+    startDate: "2024-01-10",
+    status: "Paused",
+    feeStatus: "Due",
+    completedHours: 8,
+    lastDueDate: "2026-02-15",
+    createdAt: "2024-01-10T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    courseId: "CRS-000004",
+    studentId: "STD-000004",
+    subject: "Course 4 - Subject 6",
+    teacherId: "TCH-000004",
+    timeSlot1: "Sat 7:00-8:00 PM",
+    timeSlot2: "Sun 7:00-8:00 PM",
+    cycleType: "16hrs",
+    cycleTargetHours: 16,
+    billingRatePerHour: 750,
+    billingRatePerHourHigh: 900,
+    startDate: "2024-06-01",
+    status: "Active",
+    feeStatus: "NotDue",
+    completedHours: 10,
+    createdAt: "2024-06-01T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    courseId: "CRS-000005",
+    studentId: "STD-000005",
+    subject: "Course 5 - Subject 7",
+    teacherId: "TCH-000005",
+    timeSlot1: "Wed 6:00-7:00 PM",
+    timeSlot2: "Fri 6:00-7:00 PM",
+    cycleType: "12hrs",
+    cycleTargetHours: 12,
+    billingRatePerHour: 900,
+    startDate: "2023-08-01",
+    endDate: "2025-12-15",
+    status: "Completed",
+    feeStatus: "Paid",
+    completedHours: 12,
+    createdAt: "2023-08-01T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    courseId: "CRS-000006",
+    studentId: "STD-000006",
+    subject: "Course 1 - Subject 2",
+    teacherId: "TCH-000001",
+    timeSlot1: "Tue 6:00-7:00 PM",
+    timeSlot2: "Thu 6:00-7:00 PM",
+    cycleType: "12hrs",
+    cycleTargetHours: 12,
+    billingRatePerHour: 800,
+    startDate: "2024-07-01",
+    status: "Active",
+    feeStatus: "NotDue",
+    completedHours: 6,
+    createdAt: "2024-07-01T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
 ];
 
-export const classSessions: ClassSession[] = [
-  { id: "cl1", date: "2026-02-10", time: "09:00", duration: 1.5, teacherId: "t1", teacherName: "Dr. Ananya Sharma", studentId: "s1", studentName: "Arjun Mehta", subject: "Mathematics", status: "Scheduled" },
-  { id: "cl2", date: "2026-02-10", time: "11:00", duration: 1, teacherId: "t2", teacherName: "Rajesh Kumar", studentId: "s2", studentName: "Sneha Reddy", subject: "Chemistry", status: "Scheduled" },
-  { id: "cl3", date: "2026-02-10", time: "14:00", duration: 1.5, teacherId: "t4", teacherName: "Vikram Singh", studentId: "s4", studentName: "Divya Joshi", subject: "Biology", status: "Scheduled" },
-  { id: "cl4", date: "2026-02-10", time: "16:00", duration: 1, teacherId: "t5", teacherName: "Meera Nair", studentId: "s5", studentName: "Rohan Das", subject: "Computer Science", status: "Completed" },
-  { id: "cl5", date: "2026-02-09", time: "10:00", duration: 1.5, teacherId: "t1", teacherName: "Dr. Ananya Sharma", studentId: "s6", studentName: "Anita Sharma", subject: "Physics", status: "Completed" },
-  { id: "cl6", date: "2026-02-09", time: "13:00", duration: 1, teacherId: "t2", teacherName: "Rajesh Kumar", studentId: "s2", studentName: "Sneha Reddy", subject: "Chemistry", status: "Completed" },
-  { id: "cl7", date: "2026-02-08", time: "09:00", duration: 2, teacherId: "t1", teacherName: "Dr. Ananya Sharma", studentId: "s1", studentName: "Arjun Mehta", subject: "Mathematics", status: "Completed" },
-  { id: "cl8", date: "2026-02-08", time: "15:00", duration: 1, teacherId: "t4", teacherName: "Vikram Singh", studentId: "s4", studentName: "Divya Joshi", subject: "Chemistry", status: "Cancelled" },
+export const classes: Class[] = [
+  {
+    classId: "CLS-000001",
+    studentId: "STD-000001",
+    courseId: "CRS-000001",
+    teacherId: "TCH-000001",
+    startDateTime: "2026-02-23T18:00:00Z",
+    durationMinutes: 60,
+    topicCovered: "Quadratic Equations",
+    activity: "Problem solving",
+    status: "Scheduled",
+    createdByRole: "Admin",
+    createdAt: "2026-02-23T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    classId: "CLS-000002",
+    studentId: "STD-000002",
+    courseId: "CRS-000002",
+    teacherId: "TCH-000002",
+    startDateTime: "2026-02-23T17:00:00Z",
+    durationMinutes: 60,
+    topicCovered: "Organic Chemistry",
+    activity: "Case studies",
+    status: "Scheduled",
+    createdByRole: "Admin",
+    createdAt: "2026-02-23T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-23T10:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    classId: "CLS-000003",
+    studentId: "STD-000004",
+    courseId: "CRS-000004",
+    teacherId: "TCH-000004",
+    startDateTime: "2026-02-22T19:00:00Z",
+    durationMinutes: 60,
+    topicCovered: "Cell Biology",
+    activity: "Interactive discussion",
+    status: "Completed",
+    createdByRole: "Admin",
+    createdAt: "2026-02-22T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-22T20:00:00Z",
+    updatedBy: adminId,
+  },
+  {
+    classId: "CLS-000004",
+    studentId: "STD-000006",
+    courseId: "CRS-000006",
+    teacherId: "TCH-000001",
+    startDateTime: "2026-02-21T18:00:00Z",
+    durationMinutes: 60,
+    topicCovered: "Trigonometry Basics",
+    activity: "Exercise solving",
+    status: "Completed",
+    createdByRole: "Admin",
+    createdAt: "2026-02-21T10:00:00Z",
+    createdBy: adminId,
+    updatedAt: "2026-02-21T19:00:00Z",
+    updatedBy: adminId,
+  },
 ];
 
 export const logs: LogEntry[] = [
-  { id: "l1", timestamp: "2026-02-10 09:15:00", action: "CREATE", object: "Class", user: "Dr. Ananya Sharma", role: "Teacher", details: "Created class for Arjun Mehta - Mathematics" },
-  { id: "l2", timestamp: "2026-02-10 08:30:00", action: "UPDATE", object: "Student", user: "Admin", role: "Admin", details: "Updated student Sneha Reddy's course details" },
-  { id: "l3", timestamp: "2026-02-09 17:00:00", action: "CREATE", object: "Course", user: "Admin", role: "Admin", details: "Created new course: NEET Prep - Divya" },
-  { id: "l4", timestamp: "2026-02-09 14:20:00", action: "DELETE", object: "Class", user: "Admin", role: "Admin", details: "Cancelled class cl8 - Vikram Singh" },
-  { id: "l5", timestamp: "2026-02-08 10:00:00", action: "UPDATE", object: "Teacher", user: "Admin", role: "Admin", details: "Updated Priya Patel status to Paused" },
-  { id: "l6", timestamp: "2026-02-08 09:00:00", action: "CREATE", object: "Student", user: "Admin", role: "Admin", details: "Added new student Anita Sharma" },
+  {
+    logId: "LOG-000001",
+    timestamp: "2026-02-23T10:15:00Z",
+    actorUserId: adminId,
+    actorRole: "Admin",
+    actionType: "CREATE",
+    objectType: "Class",
+    objectId: "CLS-000001",
+    after: {
+      classId: "CLS-000001",
+      studentId: "STD-000001",
+      studentName: "Arjun Mehta",
+      subject: "Mathematics + Physics",
+    },
+    remarks: "Created class for Arjun Mehta - Mathematics session",
+  },
+  {
+    logId: "LOG-000002",
+    timestamp: "2026-02-23T09:30:00Z",
+    actorUserId: adminId,
+    actorRole: "Admin",
+    actionType: "LOGIN",
+    objectType: "Settings",
+    objectId: "ADM-001",
+    remarks: "Admin login successful",
+  },
+  {
+    logId: "LOG-000003",
+    timestamp: "2026-02-22T14:00:00Z",
+    actorUserId: adminId,
+    actorRole: "Admin",
+    actionType: "CREATE",
+    objectType: "Course",
+    objectId: "CRS-000006",
+    after: {
+      courseId: "CRS-000006",
+      studentId: "STD-000006",
+      subject: "Mathematics + Physics",
+    },
+    remarks: "Created new course for Anita Sharma",
+  },
+  {
+    logId: "LOG-000004",
+    timestamp: "2026-02-21T15:00:00Z",
+    actorUserId: adminId,
+    actorRole: "Admin",
+    actionType: "UPDATE",
+    objectType: "Student",
+    objectId: "STD-000003",
+    before: { status: "Active" },
+    after: { status: "Paused" },
+    remarks: "Updated Karan Gupta status to Paused",
+  },
 ];
+
+export const instituteSettings: InstituteSettings = {
+  instituteName: "Elite Coaching Institute",
+  adminEmail: "admin@institute.com",
+  defaultClassDurationMinutes: 60,
+  timezone: "Asia/Kolkata",
+  reminderThreshold: 90,
+};

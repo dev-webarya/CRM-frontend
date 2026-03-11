@@ -34,13 +34,13 @@
 
     --radius: 0.625rem;
 
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 230 70% 60%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 230 70% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 40% 18%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 222 30% 20%;
+    --sidebar-accent: 210 20% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 20% 90%;
     --sidebar-ring: 230 70% 55%;
 
     --success: 152 60% 42%;
@@ -71,6 +71,15 @@
     --border: 222 30% 18%;
     --input: 222 30% 18%;
     --ring: 230 70% 60%;
+
+    --sidebar-background: 222 47% 9%;
+    --sidebar-foreground: 210 20% 96%;
+    --sidebar-primary: 230 70% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 30% 16%;
+    --sidebar-accent-foreground: 210 20% 96%;
+    --sidebar-border: 222 30% 18%;
+    --sidebar-ring: 230 70% 60%;
   }
 }
 
@@ -89,22 +98,116 @@
     @apply bg-card/80 backdrop-blur-lg border border-border/50;
   }
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(230 70% 55%), hsl(200 80% 50%));
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--info)));
   }
   .gradient-accent {
-    background: linear-gradient(135deg, hsl(174 60% 42%), hsl(200 80% 50%));
+    background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--info)));
   }
   .gradient-hero {
-    background: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(230 50% 20%) 50%, hsl(222 47% 11%) 100%);
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 50%, hsl(var(--background)) 100%);
   }
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(230 70% 55%), hsl(174 60% 50%));
+    background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
   }
   .shadow-soft {
-    box-shadow: 0 1px 3px 0 hsl(222 47% 11% / 0.04), 0 4px 12px 0 hsl(222 47% 11% / 0.06);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 4px 12px 0 rgb(0 0 0 / 0.06);
+  }
+  .dark .shadow-soft {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 4px 12px 0 rgb(0 0 0 / 0.4);
   }
   .shadow-card {
-    box-shadow: 0 1px 3px 0 hsl(222 47% 11% / 0.06), 0 8px 24px 0 hsl(222 47% 11% / 0.08);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 8px 24px 0 rgb(0 0 0 / 0.08);
+  }
+  .dark .shadow-card {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 8px 24px 0 rgb(0 0 0 / 0.5);
+  }
+}
+
+/* Custom Scrollbar Styling */
+@layer utilities {
+  /* Main scrollbar styles for better visibility and UX */
+  
+  /* Webkit browsers (Chrome, Safari, Edge, Opera) */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-radius: 5px;
+    border: 2px solid hsl(var(--background));
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.8);
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    background: hsl(var(--primary) / 0.6);
+  }
+
+  /* Dark mode scrollbar adjustments */
+  .dark ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-color: hsl(var(--background));
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.9);
+  }
+
+  /* Firefox scrollbar styling */
+  * {
+    scrollbar-color: hsl(var(--primary)) hsl(var(--background));
+    scrollbar-width: thin;
+  }
+
+  /* Enhanced scrollbar for specific containers */
+  .overflow-auto,
+  .overflow-y-auto,
+  .overflow-x-auto,
+  [class*="overflow"] {
+    scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+  }
+
+  .dark .overflow-auto,
+  .dark .overflow-y-auto,
+  .dark .overflow-x-auto {
+    scrollbar-color: hsl(var(--primary)) hsl(var(--card));
+  }
+
+  /* Scrollbar for dialogs and modals */
+  dialog,
+  [role="dialog"] {
+    scrollbar-color: hsl(var(--primary)) hsl(var(--card));
+  }
+
+  dialog ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  dialog ::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-radius: 4px;
+  }
+
+  /* Custom scrollbar for input fields and text areas */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea,
+  select {
+    scrollbar-color: hsl(var(--primary) / 0.6) transparent;
   }
 }

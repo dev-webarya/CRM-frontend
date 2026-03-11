@@ -1,27 +1,220 @@
-import { Calendar, DollarSign, RefreshCw, Users, Clock, BookOpen } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Calendar, DollarSign, AlertCircle, Users, Clock, BookOpen, UserPlus, ArrowRight } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
-import { classSessions, students, courses, teachers } from "@/data/mockData";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { classAPI, courseAPI, studentAPI, teacherAPI } from "@/lib/api";
+import {
+  formatCurrency,
+  calculateCycleProgress,
+} from "@/lib/crmUtils";
+import { Class, Course, Student, Teacher } from "@/types/types";
 
 export default function AdminDashboard() {
-  const todayClasses = classSessions.filter((c) => c.date === "2026-02-10");
-  const dueFees = 3;
-  const pendingCycles = courses.filter((c) => c.status === "Active" && c.completedHours / c.totalHours > 0.8).length;
-  const monthlyPayout = teachers.reduce((sum, t) => sum + t.monthlyHours * t.rate, 0);
+  // Calculate today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split("T")[0];
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [clsRes, stuRes, crsRes, tchRes] = await Promise.all([
+          classAPI.getAll(1, 500),
+          studentAPI.getAll(1, 500),
+          courseAPI.getAll(1, 500),
+          teacherAPI.getAll(1, 500),
+        ]);
+
+        setClasses(clsRes.data || []);
+        setStudents(stuRes.data || []);
+        setCourses(crsRes.data || []);
+        setTeachers(tchRes.data || []);
+      } catch (e) {
+        console.error("Failed to load admin dashboard data:", e);
+        setError("Failed to load dashboard data. Please refresh.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAll();
+  }, []);
+
+  const completedHoursByCourseId = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const c of classes) {
+      if (c.status !== "Completed") continue;
+      const hours = (c.durationMinutes || 0) / 60;
+      map.set(c.courseId, (map.get(c.courseId) || 0) + hours);
+    }
+    return map;
+  }, [classes]);
+
+  const coursesWithComputedHours = useMemo(() => {
+    return courses.map((c) => ({
+      ...c,
+      completedHours: completedHoursByCourseId.get(c.courseId) ?? c.completedHours ?? 0,
+    }));
+  }, [courses, completedHoursByCourseId]);
+
+  const todayClasses = useMemo(
+    () =>
+      classes.filter((c) =>
+        c.startDateTime.startsWith(today)
+      ),
+    [classes, today]
+  );
+
+  const dueFeesCourses = useMemo(
+    () =>
+      coursesWithComputedHours.filter(
+        (c) =>
+          c.feeStatus === "Due" || c.feeStatus === "PartiallyPaid"
+      ),
+    [coursesWithComputedHours]
+  );
+
+  const totalFeesAmount = useMemo(
+    () =>
+      dueFeesCourses.reduce((sum, c) => {
+        const rate = c.billingRatePerHour || 0;
+        const hours = c.completedHours || 0;
+        return sum + rate * hours;
+      }, 0),
+    [dueFeesCourses]
+  );
+
+  const pendingCycles = useMemo(
+    () =>
+      coursesWithComputedHours.filter((c) => {
+        const progress = calculateCycleProgress(c);
+        return progress.progress >= 80 && progress.progress < 100;
+      }),
+    [coursesWithComputedHours]
+  );
+
+  const monthlyPayout = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    return classes.reduce((sum, cls) => {
+      if (cls.status !== "Completed") return sum;
+      const d = new Date(cls.startDateTime);
+      if (d.getMonth() !== currentMonth || d.getFullYear() !== currentYear) return sum;
+      const teacher = teachers.find((t) => t.teacherId === cls.teacherId);
+      const rate = teacher?.compensationPerHour || 0;
+      const hours = (cls.durationMinutes || 0) / 60;
+      return sum + rate * hours;
+    }, 0);
+  }, [classes, teachers]);
+
+  const recentStudents = useMemo(
+    () =>
+      [...students]
+        .sort(
+          (a, b) =>
+            new Date(b.dateOfEnrollment).getTime() -
+            new Date(a.dateOfEnrollment).getTime()
+        )
+        .slice(0, 5),
+    [students]
+  );
+
+  const getStudentName = (id: string) =>
+    students.find((s) => s.studentId === id)?.name || "—";
+  const getTeacherName = (id: string) =>
+    teachers.find((t) => t.teacherId === id)?.name || "—";
+  const getCourseName = (id: string) =>
+    courses.find((c) => c.courseId === id)?.subject || "—";
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your institute today.</p>
+        <p className="text-muted-foreground">
+          Overview of your institute today. {today}
+        </p>
+        {error && (
+          <p className="mt-2 text-sm text-destructive">{error}</p>
+        )}
       </div>
 
       {/* Stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Today's Classes" value={todayClasses.length} subtitle="3 scheduled, 1 completed" icon={Calendar} />
-        <StatCard title="Due Fees" value={dueFees} subtitle="₹45,000 pending" icon={DollarSign} trend={{ value: "2 overdue", positive: false }} />
-        <StatCard title="Pending Cycles" value={pendingCycles} subtitle="Nearing completion" icon={RefreshCw} />
-        <StatCard title="Monthly Payout" value={`₹${(monthlyPayout / 1000).toFixed(0)}K`} subtitle="For all teachers" icon={Users} />
+        <StatCard
+          title="Today's Classes"
+          value={loading ? "—" : todayClasses.length}
+          subtitle={`${todayClasses.filter((c) => c.status === "Completed").length} completed`}
+          icon={Calendar}
+        />
+        <StatCard
+          title="Due Fees"
+          value={loading ? "—" : dueFeesCourses.length}
+          subtitle={formatCurrency(totalFeesAmount)}
+          icon={DollarSign}
+          trend={{
+            value: `${dueFeesCourses.filter((c) => c.feeStatus === "Due").length} overdue`,
+            positive: false,
+          }}
+        />
+        <StatCard
+          title="Pending Cycles"
+          value={loading ? "—" : pendingCycles.length}
+          subtitle="Nearing completion"
+          icon={AlertCircle}
+        />
+        <StatCard
+          title="Monthly Payout"
+          value={formatCurrency(monthlyPayout)}
+          subtitle={`${teachers.length} teachers`}
+          icon={Users}
+        />
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white shadow-lg shadow-emerald-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="h-12 w-12 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+              <UserPlus className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded">New</span>
+          </div>
+          <h3 className="text-xl font-bold mb-2 text-white">Add Student</h3>
+          <p className="text-emerald-50 mb-6 text-sm">Quickly add a new student to the system from the management panel.</p>
+          <Link to="/admin/students">
+            <Button variant="secondary" className="w-full bg-white text-emerald-600 hover:bg-emerald-50 font-bold">
+              Open Student Management <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+
+        <div className="rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white shadow-lg shadow-blue-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="h-12 w-12 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+              <BookOpen className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded">Action</span>
+          </div>
+          <h3 className="text-xl font-bold mb-2 text-white">Manage Approvals</h3>
+          <p className="text-blue-50 mb-6 text-sm">Review and approve pending registrations from students and teachers.</p>
+          <Link to="/admin/approvals">
+            <Button variant="secondary" className="w-full bg-white text-blue-600 hover:bg-blue-50 font-bold">
+              View Pending Approvals <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Today's Classes */}
@@ -30,26 +223,42 @@ export default function AdminDashboard() {
           <h2 className="font-semibold text-card-foreground flex items-center gap-2">
             <Clock className="h-4 w-4 text-primary" /> Today's Classes
           </h2>
-          <span className="text-sm text-muted-foreground">Feb 10, 2026</span>
+          <span className="text-sm text-muted-foreground">{today}</span>
         </div>
         <div className="divide-y divide-border">
-          {todayClasses.map((c) => (
-            <div key={c.id} className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <BookOpen className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium text-card-foreground">{c.subject}</p>
-                  <p className="text-sm text-muted-foreground">{c.teacherName} → {c.studentName}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-muted-foreground">{c.time} · {c.duration}h</span>
-                <StatusBadge status={c.status} />
-              </div>
+          {todayClasses.length === 0 ? (
+            <div className="px-6 py-8 text-center text-muted-foreground">
+              No classes scheduled for today
             </div>
-          ))}
+          ) : (
+            todayClasses.map((c) => (
+              <div
+                key={c.classId}
+                className="flex items-center justify-between px-6 py-4"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <BookOpen className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-card-foreground">
+                      {getCourseName(c.courseId)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {getTeacherName(c.teacherId)} → {getStudentName(c.studentId)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-muted-foreground">
+                    {new Date(c.startDateTime).toLocaleTimeString()} ·{" "}
+                    {c.durationMinutes}m
+                  </span>
+                  <StatusBadge status={c.status} />
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -64,19 +273,35 @@ export default function AdminDashboard() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Reg. No</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Course</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Reg. No
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Grade
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {students.slice(0, 5).map((s) => (
-                <tr key={s.id} className="hover:bg-muted/50 transition-colors">
-                  <td className="px-6 py-4 text-sm font-medium text-card-foreground">{s.name}</td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">{s.regNumber}</td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">{s.course}</td>
-                  <td className="px-6 py-4"><StatusBadge status={s.status} /></td>
+              {recentStudents.map((s) => (
+                <tr key={s.studentId} className="hover:bg-muted/50 transition-colors">
+                  <td className="px-6 py-4 text-sm font-medium text-card-foreground">
+                    {s.name}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-muted-foreground">
+                    {s.registrationNumber}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-muted-foreground">
+                    {s.grade}
+                  </td>
+                  <td className="px-6 py-4">
+                    <StatusBadge status={s.status} />
+                  </td>
                 </tr>
               ))}
             </tbody>

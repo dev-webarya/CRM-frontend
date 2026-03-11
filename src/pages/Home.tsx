@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, Users, BookOpen, Award, ArrowRight, CheckCircle, Star } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 
 const highlights = [
-  { icon: Users, value: "500+", label: "Students Enrolled" },
+  { icon: Users, value: "5000+", label: "Students Enrolled" },
   { icon: BookOpen, value: "50+", label: "Expert Courses" },
   { icon: Award, value: "95%", label: "Success Rate" },
   { icon: Star, value: "4.9", label: "Average Rating" },
@@ -20,61 +21,108 @@ const features = [
 ];
 
 export default function Home() {
+  const { isAuthenticated, user } = useAuth();
+
+  // Redirect authenticated users to their dashboard
+  if (isAuthenticated && user) {
+    if (user.role === 'admin') return <Navigate to="/admin" replace />;
+    if (user.role === 'teacher') return <Navigate to="/teacher" replace />;
+    if (user.role === 'student') return <Navigate to="/student" replace />;
+  }
+
   return (
     <div>
       {/* Hero */}
-      <section className="relative overflow-hidden gradient-hero py-24 sm:py-32">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsl(230_70%_55%_/_0.15),_transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_hsl(174_60%_42%_/_0.1),_transparent_50%)]" />
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="max-w-2xl"
-          >
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary-foreground/80">
-              <GraduationCap className="h-4 w-4" />
-              Trusted by 500+ students
-            </div>
-            <h1 className="text-4xl font-extrabold tracking-tight text-primary-foreground sm:text-5xl lg:text-6xl">
-              Unlock Your
-              <span className="text-gradient"> Academic Potential</span>
-            </h1>
-            <p className="mt-6 text-lg leading-relaxed text-primary-foreground/70">
-              Expert coaching for JEE, NEET, and Board exams. Personalized learning paths, dedicated mentors, and proven results.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link to="/contact">
-                <Button size="lg" className="gap-2 gradient-primary border-0 text-primary-foreground shadow-lg">
-                  Get Started <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="/about">
-                <Button size="lg" variant="outline" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
-                  Learn More
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
+      <section className="relative overflow-hidden gradient-hero py-20 lg:py-32">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsl(var(--primary)_/_0.15),_transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_hsl(var(--accent)_/_0.1),_transparent_50%)]" />
+        
+        <div className="relative mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
+                <GraduationCap className="h-4 w-4" />
+                Trusted by 5000+ students
+              </div>
+              <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-7xl">
+                Unlock Your
+                <span className="text-gradient block mt-2"> Academic Potential</span>
+              </h1>
+              <p className="mt-6 text-xl leading-relaxed text-muted-foreground max-w-xl">
+                Expert coaching for all competitive and board exams. Personalized learning paths, dedicated mentors, and proven results to help you excel.
+              </p>
+              <div className="mt-10 flex flex-wrap gap-4">
+                <Link to="/contact">
+                  <Button size="lg" className="h-14 px-8 text-lg font-bold gradient-primary border-0 text-white shadow-xl hover:shadow-primary/20 transition-all duration-300">
+                    Get Started <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link to="/about">
+                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-semibold border-primary/20 text-primary hover:bg-primary/5">
+                    Learn More
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, x: 30 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="relative"
+            >
+              <div className="relative z-10 overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+                <img 
+                  src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=1470" 
+                  alt="Students studying together" 
+                  className="h-full w-full object-cover aspect-[4/3]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              </div>
+              
+              {/* Decorative elements */}
+              <div className="absolute -bottom-6 -left-6 z-20 hidden sm:block">
+                <div className="glass rounded-xl p-4 shadow-card">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10 text-success">
+                      <CheckCircle className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-card-foreground">Success Guaranteed</p>
+                      <p className="text-xs text-muted-foreground">Proven methodology</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute -top-6 -right-6 z-0 h-32 w-32 rounded-full bg-primary/20 blur-3xl" />
+              <div className="absolute -bottom-10 -left-10 z-0 h-40 w-40 rounded-full bg-accent/20 blur-3xl" />
+            </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Stats */}
-      <section className="relative -mt-12 z-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <section className="relative -mt-10 z-20 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1400px]">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:gap-8">
             {highlights.map((h, i) => (
               <motion.div
                 key={h.label}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="rounded-xl bg-card p-6 text-center shadow-card border border-border/50"
+                transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
+                className="glass rounded-2xl p-6 text-center shadow-card hover:translate-y-[-4px] transition-transform duration-300"
               >
-                <h.icon className="mx-auto mb-2 h-6 w-6 text-primary" />
-                <p className="text-2xl font-bold text-card-foreground">{h.value}</p>
-                <p className="text-sm text-muted-foreground">{h.label}</p>
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <h.icon className="h-6 w-6" />
+                </div>
+                <p className="text-3xl font-bold text-card-foreground">{h.value}</p>
+                <p className="text-sm font-medium text-muted-foreground mt-1">{h.label}</p>
               </motion.div>
             ))}
           </div>
@@ -82,50 +130,105 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight text-foreground">
-                Why Choose <span className="text-gradient">EduCoach?</span>
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                We combine expert mentorship with technology to deliver results that speak for themselves.
-              </p>
-              <ul className="mt-8 space-y-4">
-                {features.map((f) => (
-                  <li key={f} className="flex items-start gap-3">
-                    <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-success" />
-                    <span className="text-foreground">{f}</span>
-                  </li>
+      <section className="py-24 bg-background">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+              Why Choose <span className="text-gradient">EduCoach?</span>
+            </h2>
+            <p className="mt-4 text-xl text-muted-foreground max-w-2xl mx-auto">
+              We combine expert mentorship with cutting-edge technology to deliver results that speak for themselves.
+            </p>
+          </motion.div>
+
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <div className="space-y-8">
+              <div className="grid gap-6 sm:grid-cols-2">
+                {features.map((f, i) => (
+                  <motion.div 
+                    key={f}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    className="flex items-start gap-4 p-4 rounded-xl hover:bg-muted/50 transition-colors duration-200"
+                  >
+                    <div className="mt-1 h-6 w-6 shrink-0 rounded-full bg-success/10 flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-success" />
+                    </div>
+                    <span className="text-foreground font-medium">{f}</span>
+                  </motion.div>
                 ))}
-              </ul>
-              <Link to="/services" className="mt-8 inline-block">
-                <Button variant="outline" className="gap-2">
-                  View Our Services <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-            <div className="rounded-2xl gradient-primary p-8 text-primary-foreground">
-              <h3 className="text-2xl font-bold">Start Your Journey Today</h3>
-              <p className="mt-3 text-primary-foreground/80">
-                Join hundreds of successful students who achieved their dream scores with our guidance.
-              </p>
-              <div className="mt-6 space-y-3">
-                <div className="rounded-lg bg-primary-foreground/10 p-4">
-                  <p className="font-semibold">JEE Advanced 2025</p>
-                  <p className="text-sm text-primary-foreground/70">12 students in Top 500 AIR</p>
-                </div>
-                <div className="rounded-lg bg-primary-foreground/10 p-4">
-                  <p className="font-semibold">NEET 2025</p>
-                  <p className="text-sm text-primary-foreground/70">98% students scored 600+</p>
-                </div>
-                <div className="rounded-lg bg-primary-foreground/10 p-4">
-                  <p className="font-semibold">Board Results</p>
-                  <p className="text-sm text-primary-foreground/70">Average score improvement: 35%</p>
-                </div>
+              </div>
+              
+              <div className="pt-4">
+                <Link to="/services">
+                  <Button variant="outline" size="lg" className="group h-12 px-6 border-primary/20 hover:border-primary/50 hover:bg-primary/5 text-primary">
+                    View Our Services <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
               </div>
             </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+              className="relative rounded-3xl overflow-hidden gradient-primary p-1"
+            >
+              <div className="bg-card rounded-[1.4rem] p-8 lg:p-10">
+                <h3 className="text-2xl font-bold text-foreground mb-6">Start Your Journey Today</h3>
+                <p className="text-muted-foreground mb-8 text-lg">
+                  Join hundreds of successful students who achieved their dream scores with our guidance.
+                </p>
+                
+                <div className="space-y-4">
+                  {[
+                    { title: "Course 1 Success", desc: "Top 500 National Rank Achievers", color: "bg-blue-500/10 text-blue-600" },
+                    { title: "Course 2 Result", desc: "98% students achieved target scores", color: "bg-emerald-500/10 text-emerald-600" },
+                    { title: "Course 3 Outcome", desc: "Average improvement: 35%", color: "bg-amber-500/10 text-amber-600" }
+                  ].map((item, i) => (
+                    <motion.div 
+                      key={item.title}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.5 + i * 0.1 }}
+                      className="group flex items-center justify-between rounded-2xl border border-border/50 bg-muted/30 p-5 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
+                    >
+                      <div>
+                        <p className="font-bold text-foreground">{item.title}</p>
+                        <p className="text-sm text-muted-foreground">{item.desc}</p>
+                      </div>
+                      <div className={`h-10 w-10 rounded-full ${item.color} flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity`}>
+                        <ArrowRight className="h-5 w-5" />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                <div className="mt-10 pt-8 border-t border-border">
+                  <div className="flex items-center gap-4">
+                    <div className="flex -space-x-3">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="h-10 w-10 rounded-full border-2 border-card bg-muted flex items-center justify-center overflow-hidden">
+                          <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="Student" />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-sm">
+                      <p className="font-bold text-foreground">Join 5,000+ students</p>
+                      <p className="text-muted-foreground">already learning with us</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>

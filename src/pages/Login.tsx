@@ -1,94 +1,123 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { GraduationCap, ShieldCheck, BookOpen, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { GraduationCap, Eye, EyeOff, Loader } from 'lucide-react';
 
-const roles = [
-  { id: "admin", label: "Admin", icon: ShieldCheck, desc: "Full system access", color: "bg-primary/10 text-primary border-primary/20" },
-  { id: "teacher", label: "Teacher", icon: BookOpen, desc: "Manage classes & students", color: "bg-accent/10 text-accent border-accent/20" },
-  { id: "student", label: "Student", icon: User, desc: "View schedule & progress", color: "bg-info/10 text-info border-info/20" },
-] as const;
-
-export default function Login() {
-  const [selectedRole, setSelectedRole] = useState<string>("admin");
+const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login, loading, error, clearError, isAuthenticated, user } = useAuth();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') navigate('/admin');
+      else if (user.role === 'teacher') navigate('/teacher');
+      else if (user.role === 'student') navigate('/student');
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/${selectedRole}`);
+    clearError();
+    
+    try {
+      await login(formData.email, formData.password);
+    } catch (err) {
+      console.error('Login error:', err);
+    }
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* Left - form */}
-      <div className="flex flex-1 items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md space-y-8">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary">
-              <GraduationCap className="h-5 w-5 text-primary-foreground" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <Card className="w-full max-w-md shadow-lg border-none">
+        <CardHeader className="space-y-2">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-200">
+              <GraduationCap className="h-7 w-7" />
             </div>
-            <span className="text-xl font-bold text-foreground">EduCoach</span>
+            <span className="text-2xl font-bold tracking-tight">CRM System</span>
           </div>
+          <CardTitle className="text-3xl font-bold text-center">Welcome Back</CardTitle>
+          <CardDescription className="text-center">Sign in to your CRM account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <Alert variant="destructive" className="rounded-xl">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-            <p className="mt-1 text-muted-foreground">Select your role and sign in to continue.</p>
-          </div>
-
-          {/* Role selector */}
-          <div className="grid grid-cols-3 gap-3">
-            {roles.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => setSelectedRole(r.id)}
-                className={cn(
-                  "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
-                  selectedRole === r.id
-                    ? "border-primary bg-primary/5 shadow-soft"
-                    : "border-border hover:border-primary/30"
-                )}
-              >
-                <r.icon className={cn("h-5 w-5", selectedRole === r.id ? "text-primary" : "text-muted-foreground")} />
-                <span className={cn("text-sm font-medium", selectedRole === r.id ? "text-foreground" : "text-muted-foreground")}>{r.label}</span>
-              </button>
-            ))}
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">Email</label>
-              <Input type="email" placeholder="you@institute.com" defaultValue="admin@educoach.in" />
+            <div className="space-y-2">
+              <label className="text-sm font-semibold ml-1">Email Address</label>
+              <Input
+                type="email"
+                name="email"
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="w-full h-11 rounded-xl"
+              />
             </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">Password</label>
-              <Input type="password" placeholder="••••••••" defaultValue="password123" />
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between ml-1">
+                <label className="text-sm font-semibold">Password</label>
+                <Link to="/forgot-password" title="Forgot password?" className="text-sm text-blue-600 hover:underline">
+                  Forgot?
+                </Link>
+              </div>
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full h-11 rounded-xl pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
-            <Button type="submit" className="w-full gradient-primary border-0 text-primary-foreground">
-              Sign In as {roles.find((r) => r.id === selectedRole)?.label}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg shadow-lg shadow-blue-200 transition-all"
+            >
+              {loading ? (
+                <><Loader className="mr-2 h-5 w-5 animate-spin" /> Signing In...</>
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground">
-            Demo credentials are pre-filled. Just click Sign In.
-          </p>
-        </div>
-      </div>
-
-      {/* Right - decorative */}
-      <div className="hidden lg:flex lg:flex-1 gradient-hero items-center justify-center p-12">
-        <div className="max-w-md text-center">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-foreground/10">
-            <GraduationCap className="h-8 w-8 text-primary-foreground" />
+          <div className="mt-8 text-xs text-center text-gray-400 border-t pt-6">
+            <p>Admin Login Only</p>
           </div>
-          <h2 className="text-3xl font-bold text-primary-foreground">Manage Your Institute</h2>
-          <p className="mt-4 text-primary-foreground/70">
-            Streamline student management, track classes, handle billing, and more — all in one platform.
-          </p>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default Login;

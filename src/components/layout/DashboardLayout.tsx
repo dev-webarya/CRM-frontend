@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import {
   GraduationCap, LayoutDashboard, Users, BookOpen, Calendar, FileText,
-  ChevronLeft, LogOut, Menu, UserCircle, DollarSign, Bell
+  ChevronLeft, LogOut, Menu, UserCircle, DollarSign, Bell, Moon, Sun, CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "../ThemeToggle";
 
 interface NavItem {
   label: string;
@@ -15,10 +17,12 @@ interface NavItem {
 
 const adminNav: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "Approvals", href: "/admin/approvals", icon: CheckCircle },
   { label: "Teachers", href: "/admin/teachers", icon: Users },
   { label: "Students", href: "/admin/students", icon: UserCircle },
   { label: "Courses", href: "/admin/courses", icon: BookOpen },
   { label: "Classes", href: "/admin/classes", icon: Calendar },
+  { label: "Billing Center", href: "/admin/billing", icon: DollarSign },
   { label: "Logs", href: "/admin/logs", icon: FileText },
 ];
 
@@ -45,7 +49,13 @@ export function DashboardLayout({ role }: { role: "admin" | "teacher" | "student
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const config = roleConfig[role];
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -58,16 +68,16 @@ export function DashboardLayout({ role }: { role: "admin" | "teacher" | "student
       >
         {/* Logo */}
         <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-4">
-          <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", config.color)}>
-            <GraduationCap className="h-4 w-4 text-primary-foreground" />
+          <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg shadow-sm", config.color)}>
+            <GraduationCap className="h-5 w-5 text-primary-foreground" />
           </div>
-          {!collapsed && <span className="font-bold text-sidebar-foreground">EduCoach</span>}
+          {!collapsed && <span className="font-bold text-foreground">EduCoach</span>}
         </div>
 
         {/* Role label */}
         {!collapsed && (
           <div className="px-4 py-3">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+            <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
               {config.label} Panel
             </span>
           </div>
@@ -82,10 +92,10 @@ export function DashboardLayout({ role }: { role: "admin" | "teacher" | "student
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-200",
                   active
-                    ? "bg-sidebar-accent text-sidebar-primary"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 <item.icon className="h-4.5 w-4.5 shrink-0" />
@@ -116,15 +126,16 @@ export function DashboardLayout({ role }: { role: "admin" | "teacher" | "student
               <Menu className="h-5 w-5 text-muted-foreground" />
             </button>
             <h2 className="text-sm font-medium text-muted-foreground">
-              Welcome back, <span className="text-foreground">{role === "admin" ? "Admin" : role === "teacher" ? "Dr. Ananya" : "Arjun"}</span>
+              Welcome back, <span className="text-foreground font-semibold">{user?.name || config.label}</span>
             </h2>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-4.5 w-4.5 text-muted-foreground" />
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/login")} className="gap-2 text-muted-foreground">
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-muted-foreground">
               <LogOut className="h-4 w-4" />
               {!collapsed && <span className="hidden sm:inline">Logout</span>}
             </Button>

@@ -5,68 +5,91 @@ import { Button } from "@/components/ui/button";
 const services = [
   {
     icon: BookOpen,
-    title: "JEE Coaching",
-    desc: "Comprehensive preparation for JEE Main & Advanced with expert faculty and regular mock tests.",
-    features: ["Physics, Chemistry, Mathematics", "Weekly mock tests", "Doubt clearing sessions", "Study material included"],
+    title: "Course 1",
+    desc: "Comprehensive preparation for advanced levels with expert faculty and regular mock tests.",
+    features: ["Subject 1, Subject 2, Subject 3", "Weekly mock tests", "Doubt clearing sessions", "Study material included"],
     price: "₹15,000/month",
   },
   {
     icon: Microscope,
-    title: "NEET Preparation",
-    desc: "Biology-focused NEET coaching with practical lab sessions and in-depth concept building.",
-    features: ["Biology, Chemistry, Physics", "NCERT focused approach", "Previous year analysis", "Monthly assessments"],
+    title: "Course 2",
+    desc: "Specialized coaching with practical sessions and in-depth concept building.",
+    features: ["Subject 4, Subject 5, Subject 6", "Goal focused approach", "Previous year analysis", "Monthly assessments"],
     price: "₹12,000/month",
   },
   {
     icon: PenTool,
-    title: "Board Exam Prep",
-    desc: "Targeted preparation for CBSE and state board exams with focus on scoring techniques.",
-    features: ["All subjects covered", "Sample paper practice", "Answer writing skills", "Flexible timings"],
+    title: "Course 3",
+    desc: "Targeted preparation for board exams with focus on scoring techniques.",
+    features: ["All subjects 1-10 covered", "Sample paper practice", "Answer writing skills", "Flexible timings"],
     price: "₹8,000/month",
   },
   {
     icon: Code,
-    title: "CS & Coding",
-    desc: "Programming and computer science courses from basics to competitive coding.",
-    features: ["Python, Java, C++", "Data structures & algorithms", "Project-based learning", "Portfolio building"],
+    title: "Course 4",
+    desc: "Advanced professional courses from basics to competitive levels.",
+    features: ["Subject 7, Subject 8, Subject 9", "Skill-based learning", "Project-based learning", "Portfolio building"],
     price: "₹10,000/month",
   },
 ];
 
+import { motion } from "framer-motion";
+
 export default function Services() {
   return (
-    <div className="py-16">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Our <span className="text-gradient">Services</span></h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Comprehensive coaching programs designed to help you achieve academic excellence.
-          </p>
+    <div className="py-24 bg-background">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              Our <span className="text-gradient">Services</span>
+            </h1>
+            <p className="mt-6 text-xl text-muted-foreground max-w-2xl mx-auto">
+              Comprehensive coaching programs designed to help you achieve academic excellence through personalized mentorship.
+            </p>
+          </motion.div>
         </div>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2">
-          {services.map((s) => (
-            <div key={s.title} className="group rounded-xl bg-card p-6 shadow-soft border border-border/50 transition-all hover:shadow-card">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-colors group-hover:bg-primary/20">
-                <s.icon className="h-6 w-6 text-primary" />
+        <div className="grid gap-8 sm:grid-cols-2">
+          {services.map((s, i) => (
+            <motion.div 
+              key={s.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="group relative rounded-3xl bg-card p-8 shadow-card border border-border/50 transition-all hover:border-primary/30 hover:shadow-xl hover:translate-y-[-4px]"
+            >
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground shadow-inner">
+                <s.icon className="h-7 w-7" />
               </div>
-              <h3 className="text-xl font-semibold text-card-foreground">{s.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
-              <ul className="mt-4 space-y-2">
+              <h3 className="text-2xl font-bold text-card-foreground">{s.title}</h3>
+              <p className="mt-3 text-muted-foreground leading-relaxed">{s.desc}</p>
+              
+              <div className="mt-8 space-y-3">
                 {s.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    {f}
-                  </li>
+                  <div key={f} className="flex items-center gap-3 text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+                    <span className="text-sm font-medium">{f}</span>
+                  </div>
                 ))}
-              </ul>
-              <div className="mt-6 flex items-center justify-between">
-                <span className="text-lg font-bold text-foreground">{s.price}</span>
+              </div>
+              
+              <div className="mt-10 pt-8 border-t border-border/50 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Starting from</p>
+                  <span className="text-2xl font-black text-foreground">{s.price}</span>
+                </div>
                 <Link to="/contact">
-                  <Button size="sm" variant="outline" className="gap-1">Enquire <ArrowRight className="h-3.5 w-3.5" /></Button>
+                  <Button size="lg" className="gradient-primary border-0 text-primary-foreground font-bold shadow-md hover:shadow-primary/20">
+                    Enquire Now <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
                 </Link>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

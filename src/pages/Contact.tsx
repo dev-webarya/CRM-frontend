@@ -12,6 +12,8 @@ const contactInfo = [
   { icon: Clock, label: "Hours", value: "Mon - Sat: 8:00 AM - 8:00 PM" },
 ];
 
+import { motion } from "framer-motion";
+
 export default function Contact() {
   const { toast } = useToast();
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
@@ -23,51 +25,122 @@ export default function Contact() {
   };
 
   return (
-    <div className="py-16">
+    <div className="py-24 bg-background overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Get in <span className="text-gradient">Touch</span></h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Have questions about our programs? We'd love to hear from you.
-          </p>
+        <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              Get in <span className="text-gradient">Touch</span>
+            </h1>
+            <p className="mt-6 text-xl text-muted-foreground max-w-2xl mx-auto">
+              Have questions about our programs or want to schedule a demo? We'd love to hear from you.
+            </p>
+          </motion.div>
         </div>
 
-        <div className="mt-12 grid gap-12 lg:grid-cols-2">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">Name</label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Your name" required />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">Email</label>
-                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="you@email.com" required />
-              </div>
+        <div className="grid gap-16 lg:grid-cols-2 lg:items-start">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="rounded-3xl bg-card border border-border/50 p-8 lg:p-10 shadow-2xl relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_hsl(230_70%_55%_/_0.05),_transparent_40%)]" />
+            <div className="relative">
+              <h2 className="text-2xl font-bold text-foreground mb-8">Send us a message</h2>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-foreground ml-1">Your Name</label>
+                    <Input 
+                      value={form.name} 
+                      onChange={(e) => setForm({ ...form, name: e.target.value })} 
+                      placeholder="John Doe" 
+                      required 
+                      className="h-12 px-4 rounded-xl border-border/60 focus:ring-primary/20 focus:border-primary bg-muted/30"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-foreground ml-1">Email Address</label>
+                    <Input 
+                      type="email" 
+                      value={form.email} 
+                      onChange={(e) => setForm({ ...form, email: e.target.value })} 
+                      placeholder="john@example.com" 
+                      required 
+                      className="h-12 px-4 rounded-xl border-border/60 focus:ring-primary/20 focus:border-primary bg-muted/30"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-foreground ml-1">Phone Number</label>
+                  <Input 
+                    value={form.phone} 
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })} 
+                    placeholder="+91 XXXXX XXXXX" 
+                    className="h-12 px-4 rounded-xl border-border/60 focus:ring-primary/20 focus:border-primary bg-muted/30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-foreground ml-1">Your Message</label>
+                  <Textarea 
+                    value={form.message} 
+                    onChange={(e) => setForm({ ...form, message: e.target.value })} 
+                    placeholder="Tell us about your requirements..." 
+                    rows={5} 
+                    required 
+                    className="px-4 py-3 rounded-xl border-border/60 focus:ring-primary/20 focus:border-primary bg-muted/30"
+                  />
+                </div>
+                <Button type="submit" className="w-full h-14 text-lg font-bold gradient-primary border-0 text-primary-foreground shadow-xl hover:shadow-primary/20 transition-all">
+                  Send Message
+                </Button>
+              </form>
             </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">Phone</label>
-              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+91 XXXXX XXXXX" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">Message</label>
-              <Textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Tell us about your requirements..." rows={5} required />
-            </div>
-            <Button type="submit" className="w-full gradient-primary border-0 text-primary-foreground">Send Message</Button>
-          </form>
+          </motion.div>
 
-          <div className="space-y-6">
-            {contactInfo.map((c) => (
-              <div key={c.label} className="flex gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <c.icon className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">{c.label}</p>
-                  <p className="text-sm text-muted-foreground">{c.value}</p>
-                </div>
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-8"
+          >
+            <div className="grid gap-6 sm:grid-cols-2">
+              {contactInfo.map((c, i) => (
+                <motion.div 
+                  key={c.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="rounded-2xl bg-card border border-border/50 p-6 shadow-card hover:border-primary/30 transition-all"
+                >
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <c.icon className="h-6 w-6" />
+                  </div>
+                  <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1">{c.label}</p>
+                  <p className="text-lg font-bold text-foreground">{c.value}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="rounded-3xl overflow-hidden border border-border/50 shadow-2xl h-[400px] relative">
+              {/* Placeholder for map */}
+              <div className="absolute inset-0 bg-muted flex flex-col items-center justify-center text-center p-8">
+                <MapPin className="h-12 w-12 text-primary mb-4 opacity-20" />
+                <p className="text-lg font-bold text-muted-foreground">Map will be loaded here</p>
+                <p className="text-sm text-muted-foreground mt-2">123 Education Lane, Knowledge Park, Delhi 110001</p>
               </div>
-            ))}
-          </div>
+              <img 
+                src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=1470" 
+                alt="Office Location" 
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>
